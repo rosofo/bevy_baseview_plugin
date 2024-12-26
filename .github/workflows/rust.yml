@@ -20,7 +20,6 @@ jobs:
 
       - name: rustfmt
         run: cargo fmt --all -- --check
-        working-directory: ./bevy_baseview_plugin/
 
       - name: Install baseview dependencies
         run: |
@@ -29,12 +28,9 @@ jobs:
 
       - name: cargo check
         run: cargo check
-        working-directory: ./bevy_baseview_plugin/
 
       - name: clippy
         run: cargo clippy
-        working-directory: ./bevy_baseview_plugin/
 
       - name: cargo test
         run: cargo test
-        working-directory: ./bevy_baseview_plugin/

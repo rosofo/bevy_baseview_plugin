@@ -1,13 +1,16 @@
-use bevy::utils::HashMap;
-use bevy::window::{Window, WindowDescriptor, WindowId};
+use std::default;
+
+use bevy::{prelude::*, utils::HashMap};
+use bevy::window::Window;
 use raw_window_handle::HasRawWindowHandle;
+
 
 use crate::{BaseviewWindow, BaseviewWindowInfo};
 
 #[derive(Debug, Default)]
 pub struct BaseviewWindows {
-    pub window_id_to_baseview: HashMap<WindowId, u64>,
-    pub baseview_to_window_id: HashMap<u64, WindowId>,
+    pub window_entity_to_baseview: HashMap<Entity, u64>,
+    pub baseview_to_window_entity: HashMap<u64, Entity>,
     // Some window functions, such as `set_window_icon` can only be used from the main thread. If
     // they are used in another thread, the app will hang. This marker ensures `WinitWindows` is
     // only ever accessed with bevy's non-send functions and in NonSend systems.
@@ -17,8 +20,8 @@ pub struct BaseviewWindows {
 impl BaseviewWindows {
     pub(crate) fn create_window(
         &mut self,
-        window_id: WindowId,
-        window_descriptor: &WindowDescriptor,
+        window_id: Entity,
+        window_descriptor: &Window,
         baseview_window_info: BaseviewWindowInfo,
     ) -> Window {
         let BaseviewWindowInfo {
@@ -41,23 +44,20 @@ impl BaseviewWindows {
         let phy_size = window_open_options.size.to_physical(&window_info);
 
         baseview::Window::open_parented(&parent_win, window_open_options, |_| baseview_window);
-        self.baseview_to_window_id
+        self.baseview_to_window_entity
             .insert(baseview_window_id, window_id);
-        self.window_id_to_baseview
+        self.window_entity_to_baseview
             .insert(window_id, baseview_window_id);
 
-        Window::new(
-            window_id,
-            window_descriptor,
-            phy_size.width,
-            phy_size.height,
-            scale_factor,
-            None, // position,
-            parent_win.raw_window_handle(),
-        )
+        Window {
+            position,
+            
+            parent_win.raw_window_handle()
+            ..default()
+        }
     }
 
     pub fn get_window_id(&self, id: u64) -> Option<WindowId> {
-        self.baseview_to_window_id.get(&id).cloned()
+        self.baseview_to_window_entity.get(&id).cloned()
     }
 }
